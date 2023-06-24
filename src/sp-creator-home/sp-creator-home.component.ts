@@ -70,7 +70,6 @@ export class SpCreatorHomeComponent extends SPCreatorProperties implements OnIni
       this.onTableDDReset()
       this.columnR = this.ddData.filter((x: any) => x.tableName == event.value)
       var ddpData = { id: 'DEF', tableName: this.columnR[0].tableName, data: this.columnR[0] }
-
       this.innerddData = this.ddData.filter((x: any) => x.tableName != ddpData.tableName)
       var index
       if (this.tabRefData.filter((x: any) => x.tableName == ddpData.tableName).length > 0) {
@@ -137,8 +136,7 @@ export class SpCreatorHomeComponent extends SPCreatorProperties implements OnIni
   }
 
   onDropdownChangeforTableRef(event: MatSelectChange) {
-    debugger;
-    this.tableColumns = this.tabRefData.filter((x: any)=> x.id == event.value)[0].data.tableColumns.split(', ') 
+    this.tableColumns = this.tabRefData.filter((x: any) => x.id == event.value)[0].data.tableColumns.split(', ') 
     this.tabRefName = event.value;
     this.whereConditionFormat();
     this.outPutDataFormat();
@@ -169,7 +167,7 @@ export class SpCreatorHomeComponent extends SPCreatorProperties implements OnIni
       return `(${value})`
     }
     else if (this.comparatorSelected == 'LIKE') {
-      return `%${value}%`
+      return `'%${value}%'`
     }
     else {
       return value;
@@ -200,13 +198,17 @@ export class SpCreatorHomeComponent extends SPCreatorProperties implements OnIni
     newWhereUsersArray.push({ tableRef: this.tabRefName, condition: this.whereName, comparator: this.comparatorSelected, value: this.conditionValue })
     this.whereDataSource = [...newWhereUsersArray];
     if (this.whereList.length > 0) {
-      this.whereList.push(`${this.addCondition} ${this.whereCondition}`)
+      this.whereList.push(`${this.addCondition} ${this.whereCondition.replace('WHERE ', '') }`)
     }
     else {
       this.whereList.push(this.whereCondition)
     }
     this.whereConditionFormat();
     this.outPutDataFormat();
+  }
+
+  addInnerJoin() {
+
   }
 
   delete(index: any) {
@@ -225,6 +227,9 @@ export class SpCreatorHomeComponent extends SPCreatorProperties implements OnIni
     const newWhereUsersArray = this.userWhereData;
     newWhereUsersArray.splice(i, 1);
     this.whereList.splice(i, 1);
+    var newData = this.whereList[0].replace('AND ', 'WHERE ')
+    
+    this.whereList.splice(0, 1, newData)
     this.whereDataSource = [...newWhereUsersArray];
     this.whereConditionFormat();
     this.outPutDataFormat();

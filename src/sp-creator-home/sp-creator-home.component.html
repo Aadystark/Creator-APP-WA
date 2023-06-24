@@ -24,9 +24,9 @@
                 <mat-radio-button (change)="radioChange($event)" value="ALTER">Alter Script</mat-radio-button>
               </mat-radio-group>
                 <mat-form-field *ngIf="scriptType == 'ALTER'">
-                  <mat-select required (selectionChange)="onSPDDChange($event)">
+                  <mat-select [(ngModel)]="spName" required (selectionChange)="onSPDDChange($event)">
                     <mat-option value="">-- None --</mat-option>
-                    <mat-option [(ngModel)]="spName" *ngFor="let data of spdDData" [value]="data.spName">{{data.spName}}</mat-option>
+                    <mat-option *ngFor="let data of spdDData" [value]="data.spName">{{data.spName}}</mat-option>
                   </mat-select>
                   <mat-label>Select SP to Alter</mat-label>
                 </mat-form-field>
@@ -120,7 +120,7 @@
                     <mat-checkbox #conditionCheck>Where Condition required?</mat-checkbox>
                     <div *ngIf="conditionCheck.checked">
                       <div style="padding-top: 20px">
-                        <mat-form-field *ngIf="innerJoinName != ''">
+                        <mat-form-field>
                           <mat-select #tableRef required (selectionChange)="onDropdownChangeforTableRef($event)">
                             <mat-option>-- None --</mat-option>
                             <mat-option *ngFor="let ref of tabRefData" [value]="ref.id">{{ref.tableName}}</mat-option>
@@ -152,7 +152,7 @@
                               <mat-option value="AND">AND</mat-option>
                               <mat-option value="OR">OR</mat-option>
                             </mat-select>
-                            <mat-label>Table Reference</mat-label>
+                            <mat-label>Logic Operator</mat-label>
                           </mat-form-field>
                           <button style="margin-left:15px" mat-mini-fab color="accent" aria-label="Example icon button with a plus one icon" (click)="addWheretoGrid()">
                             <mat-icon>add</mat-icon>
