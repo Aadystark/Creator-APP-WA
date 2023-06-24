@@ -1,0 +1,227 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button class="example-icon" [matMenuTriggerFor]="menu" aria-label="Example icon-button with menu icon">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item>Item 1</button>
+    <button mat-menu-item>Log out</button>
+  </mat-menu>
+  <span>Creator App</span>
+  <span class="example-spacer"></span>
+</mat-toolbar>
+
+<div style="display: flex; width: 100%;">
+  <div style="display: inline-block; flex: 1; margin: 10px; margin-right: 20px;">
+    <mat-tab-group style="justify-content: center">
+      <mat-tab class="text-center" label="Select Query">
+    <mat-card>
+      <mat-card-content>
+        <div>
+          <div class="example-container">
+            <div style="margin-top: 20px;">
+              <mat-radio-group aria-label="Create/Alter Script">
+                <mat-radio-button (change)="radioChange($event)" value="CREATE">Create Script</mat-radio-button>
+                <mat-radio-button (change)="radioChange($event)" value="ALTER">Alter Script</mat-radio-button>
+              </mat-radio-group>
+                <mat-form-field *ngIf="scriptType == 'ALTER'">
+                  <mat-select required (selectionChange)="onSPDDChange($event)">
+                    <mat-option value="">-- None --</mat-option>
+                    <mat-option [(ngModel)]="spName" *ngFor="let data of spdDData" [value]="data.spName">{{data.spName}}</mat-option>
+                  </mat-select>
+                  <mat-label>Select SP to Alter</mat-label>
+                </mat-form-field>
+                <mat-form-field *ngIf="scriptType == 'CREATE'">
+                  <mat-label>New SP Name</mat-label>
+                  <input matInput [(ngModel)]="spName" (input)="onspNameValueChange()" placeholder="Simple placeholder">
+                </mat-form-field>
+            </div>
+            <div *ngIf="scriptType">
+              <div style="padding-top: 20px">
+                <mat-checkbox #termsAndConditions>Parameter required?</mat-checkbox>
+                <div *ngIf="termsAndConditions.checked">
+                  <div>
+                    <form [formGroup]="paramForm">
+                      <mat-form-field>
+                        <mat-label>Parameter name</mat-label>
+                        <input matInput placeholder="Enter a Param Name" formControlName="paramName">
+                      </mat-form-field>
+                      <mat-form-field>
+                        <mat-select required formControlName="paramType">
+                          <mat-option>-- None --</mat-option>
+                          <mat-option value="VARCHAR">VARCHAR</mat-option>
+                          <mat-option value="INT">INT</mat-option>
+                          <mat-option value="DATETIME">DATETIME</mat-option>
+                          <mat-option value="BIT">BIT</mat-option>
+                        </mat-select>
+                        <mat-label>Parameter Type</mat-label>
+                      </mat-form-field>
+                      <mat-form-field *ngIf="paramForm.controls['paramType'].value == 'VARCHAR'">
+                        <mat-label>Parameter Length</mat-label>
+                        <input matInput formControlName="paramLength" placeholder="Enter a Param Length">
+                      </mat-form-field>
+                      <button style="margin-left:15px" mat-mini-fab color="accent" aria-label="Example icon button with a plus one icon" (click)="addtoGrid()">
+                        <mat-icon>add</mat-icon>
+                      </button>
+                    </form>
+                  </div>
+                  <div>
+                    <table #table style="width:100%; text-align: center;" mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+                      <ng-container matColumnDef="paramName">
+                        <th mat-header-cell *matHeaderCellDef style="text-align: center;"> Parameter Name </th>
+                        <td mat-cell *matCellDef="let element"> {{element.paramName}} </td>
+                      </ng-container>
+
+                      <!-- Name Column -->
+                      <ng-container matColumnDef="paramType">
+                        <th mat-header-cell *matHeaderCellDef style="text-align: center;"> Parameter Type</th>
+                        <td mat-cell *matCellDef="let element"> {{element.paramType}} </td>
+                      </ng-container>
+
+                      <!-- Weight Column -->
+                      <ng-container matColumnDef="paramLength">
+                        <th mat-header-cell *matHeaderCellDef style="text-align: center;"> Parameter Length</th>
+                        <td mat-cell *matCellDef="let element"> {{element.paramLength}} </td>
+                      </ng-container>
+
+                      <ng-container matColumnDef="actions">
+                        <mat-header-cell *matHeaderCellDef style="text-align: center;">Actions</mat-header-cell>
+                        <mat-cell *matCellDef="let row;">
+                          <button mat-icon-button (click)="delete(row)">
+                            <mat-icon color="warn">delete</mat-icon>
+                          </button>
+                        </mat-cell>
+                      </ng-container>
+
+                      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                    </table>
+                  </div>
+                </div>
+                <div style="padding-top: 20px">
+                  <mat-form-field>
+                    <mat-select required (selectionChange)="onDropdownChange($event)">
+                      <mat-option value="">-- None --</mat-option>
+                      <mat-option [(ngModel)]="tableName" *ngFor="let data of ddData" [value]="data.tableName">{{data.tableName}}</mat-option>
+                    </mat-select>
+                    <mat-label>Select table for SP</mat-label>
+                  </mat-form-field>
+                  <mat-form-field *ngIf="tableName">
+                    <mat-select required (selectionChange)="onDropdownChangeforInnerJoin($event)">
+                      <mat-option value="">-- None --</mat-option>
+                      <mat-option [(ngModel)]="innerJoinName" *ngFor="let dataum of ddData" [value]="dataum.tableName">{{dataum.tableName}}</mat-option>
+                    </mat-select>
+                    <mat-label>Inner Join Table | optional</mat-label>
+                  </mat-form-field>
+                </div>
+                <div *ngIf="tableName">
+                  <div style="padding-top: 20px">
+                    <mat-checkbox #conditionCheck>Where Condition required?</mat-checkbox>
+                    <div *ngIf="conditionCheck.checked">
+                      <div style="padding-top: 20px">
+                        <mat-form-field *ngIf="innerJoinName != ''">
+                          <mat-select required (selectionChange)="onDropdownChangeforTableRef($event)">
+                            <mat-option>-- None --</mat-option>
+                            <mat-option *ngFor="let ref of tabRefData" [value]="ref.id">{{ref.tableName}}</mat-option>
+                          </mat-select>
+                          <mat-label>Table Reference</mat-label>
+                        </mat-form-field>
+                        <mat-form-field>
+                          <mat-select required (selectionChange)="onDropdownChangeforWhere($event)">
+                            <mat-option>-- None --</mat-option>
+                            <mat-option *ngFor="let columns of tableColumns" [value]="columns">{{columns}}</mat-option>
+                          </mat-select>
+                          <mat-label>Column Name</mat-label>
+                        </mat-form-field>
+                        <mat-form-field>
+                          <mat-select required (selectionChange)="onDropdownChangeforComparators($event)">
+                            <mat-option>-- None --</mat-option>
+                            <mat-option *ngFor="let comps of comparators" [value]="comps">{{comps}}</mat-option>
+                          </mat-select>
+                          <mat-label>Comparator</mat-label>
+                        </mat-form-field>
+                        <mat-form-field *ngIf="comparatorSelected != 'IS NULL' && comparatorSelected != 'IS NOT NULL'">
+                          <mat-label>Condition Value</mat-label>
+                          <input matInput [(ngModel)]="conditionValue" (input)="onConditionValueChange()" placeholder="Enter a value">
+                        </mat-form-field>
+                        <mat-form-field *ngIf="whereList.length > 0">
+                          <mat-select required (selectionChange)="onDropdownChangeforAddCond($event)">
+                            <mat-option>-- None --</mat-option>
+                            <mat-option value="AND">AND</mat-option>
+                            <mat-option value="OR">OR</mat-option>
+                          </mat-select>
+                          <mat-label>Table Reference</mat-label>
+                        </mat-form-field>
+                        <button style="margin-left:15px" mat-mini-fab color="accent" aria-label="Example icon button with a plus one icon" (click)="addWheretoGrid()">
+                          <mat-icon>add</mat-icon>
+                        </button>
+                      </div>
+                      <div style="padding-top: 20px">
+                        <table #table style="width:100%; text-align: center;" mat-table [dataSource]="whereDataSource" class="mat-elevation-z8">
+                          <ng-container matColumnDef="condition">
+                            <th mat-header-cell *matHeaderCellDef style="text-align: center;"> Condition Name </th>
+                            <td mat-cell *matCellDef="let element"> {{element.condition}} </td>
+                          </ng-container>
+
+                          <!-- Name Column -->
+                          <ng-container matColumnDef="comparator">
+                            <th mat-header-cell *matHeaderCellDef style="text-align: center;"> Comparator</th>
+                            <td mat-cell *matCellDef="let element"> {{element.comparator}} </td>
+                          </ng-container>
+
+                          <!-- Weight Column -->
+                          <ng-container matColumnDef="value">
+                            <th mat-header-cell *matHeaderCellDef style="text-align: center;"> Condition Value</th>
+                            <td mat-cell *matCellDef="let element"> {{element.value}} </td>
+                          </ng-container>
+
+                          <ng-container matColumnDef="actions">
+                            <mat-header-cell *matHeaderCellDef style="text-align: center;">Actions</mat-header-cell>
+                            <mat-cell *matCellDef="let row;">
+                              <button mat-icon-button (click)="deleteWhere(row)">
+                                <mat-icon color="warn">delete</mat-icon>
+                              </button> 
+                            </mat-cell>
+                          </ng-container>
+
+                          <tr mat-header-row *matHeaderRowDef="displayedWhereColumns"></tr>
+                          <tr mat-row *matRowDef="let row; columns: displayedWhereColumns;"></tr>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                      <!-- End of Controls -->
+
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+        <div style="padding-top: 40px" *ngIf="scriptType">
+          <button mat-raised-button color="primary" (click)="submitSP()">
+            Submit
+          </button>
+          <div style="padding-top: 20px">
+            <span style="color:mediumseagreen">{{successMssg}}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </mat-tab>
+  <mat-tab class="text-center" label="Second">
+    Content 2
+  </mat-tab>
+  <mat-tab class="text-center" label="Third">
+    Content 3
+  </mat-tab>
+</mat-tab-group>
+  </div>
+  <div style="display:inline-block; flex: 1; margin: 10px;">
+    <mat-card style="height: 100%">
+      <mat-form-field class="example-full-width">
+        <mat-label>Output window</mat-label>
+        <textarea cdkTextareaAutosize [(ngModel)]="outPutData" matInput placeholder="Start creating..."></textarea>
+      </mat-form-field>
+    </mat-card>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<section class="main">
+  <div class="layer" bis_skin_checked="1">
+    <!---728x90--->
+    <div class="content-w3ls" bis_skin_checked="1">
+      <div class="text-center icon" bis_skin_checked="1">
+        <span class="fa fa-html5"></span>
+      </div>
+      <!---728x90--->
+      <div class="content-bottom" bis_skin_checked="1">
+        <form action="#" method="post" [formGroup]="loginForm">
+          <div class="field-group" bis_skin_checked="1">
+            <span class="fa fa-user" aria-hidden="true"></span>
+            <div class="wthree-field" bis_skin_checked="1">
+              <input name="text1" id="text1" type="text" formControlName="userName" placeholder="Username" required="">
+            </div>
+          </div>
+          <span style="color: firebrick" *ngIf="loginForm.get('userName')?.touched && loginForm.get('userName')?.errors?.['required']">Invalid UserName</span>
+          <div class="field-group" bis_skin_checked="1">
+            <span class="fa fa-lock" aria-hidden="true"></span>
+            <div class="wthree-field" bis_skin_checked="1">
+              <input name="password" id="myInput" type="Password" formControlName="password" placeholder="Password">
+            </div>
+          </div>
+          <span style="color: firebrick" *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.errors?.['required']">Invalid Password</span>
+          <div class="wthree-field" bis_skin_checked="1">
+            <button type="submit" class="btn" (click)="submit()">Login</button>
+            <span style="color:firebrick" *ngIf="submitValidate">Kindly enter details to continue</span>
+            <span style="color:firebrick" *ngIf="invalidData">Invalid Details entered</span>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!---728x90--->
+  </div>
+</section>
