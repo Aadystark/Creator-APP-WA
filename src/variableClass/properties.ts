@@ -14,6 +14,7 @@ export class SPCreatorProperties {
   tabRefData: any = [];
   userWhereData: any = [];
   ddData: any = [];
+  innerddData: any = [];
   dataSource: any;
   whereDataSource: any
   scriptType = '';
@@ -26,5 +27,6 @@ export class SPCreatorProperties {
   tabRefName = '';
   addCondition = '';
   comparatorSelected = '';
+  historicalData: any;
   comparators: any = ['=', '>', '<', '<>', '>=', '<=', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'IS NULL', 'IS NOT NULL', 'LIKE']
 }

@@ -7,9 +7,10 @@ import { BehaviorSubject } from 'rxjs';
 import { MatTable, MatTableDataSource } from '@angular/material/table';
 import { MatTab } from '@angular/material/tabs';
 import { MatRadioButton, MatRadioChange } from '@angular/material/radio';
-import { MatSelectChange } from '@angular/material/select';
+import { MatSelect, MatSelectChange, MatSelectConfig } from '@angular/material/select';
 import { MatDialog } from '@angular/material/dialog';
 import { SPCreatorProperties } from '../variableClass/properties';
+import { pairwise, startWith } from 'rxjs/operators'
 
 @Component({
   selector: 'app-sp-creator-home',
@@ -25,8 +26,13 @@ export class SpCreatorHomeComponent extends SPCreatorProperties implements OnIni
     paramLength: new FormControl(0),
   });
 
+  selectInnerForm: FormGroup = new FormGroup({
+    tableName: new FormControl(''),
+    innerJoinName: new FormControl(''),
+  });
+
   displayedColumns: string[] = ['paramName', 'paramType', 'paramLength', 'actions'];
-  displayedWhereColumns: string[] = ['condition', 'comparator', 'value', 'actions'];
+  displayedWhereColumns: string[] = ['tableRef', 'condition', 'comparator', 'value', 'actions'];
 
   constructor(private spService: SpCreatorServiceService, private _formBuilder: FormBuilder, private sanitized: DomSanitizer) {
       super();
@@ -49,20 +55,44 @@ export class SpCreatorHomeComponent extends SPCreatorProperties implements OnIni
     this.outPutDataFormat();
   }
 
+  selectInputChange() {
+    this.selectInnerForm.valueChanges.pipe(startWith(this.selectInnerForm.value), pairwise()).subscribe(
+      ([old, value]: any) => {
+        this.historicalData = old;
+      })
+  }
+
   onDropdownChange(event: MatSelectChange) {
-    debugger
+    this.selectInputChange()
+    this.selectInnerForm.controls['innerJoinName'].reset();
+    this.tabRefData = [];
     if (event.value != '') {
+      this.onTableDDReset()
       this.columnR = this.ddData.filter((x: any) => x.tableName == event.value)
       var ddpData = { id: 'DEF', tableName: this.columnR[0].tableName, data: this.columnR[0] }
 
-      if (this.tabRefData.filter((x: any) => x.tableName == ddpData.tableName).length > 0) { }
-      else { this.tabRefData.push(ddpData) }
+      this.innerddData = this.ddData.filter((x: any) => x.tableName != ddpData.tableName)
+      var index
+      if (this.tabRefData.filter((x: any) => x.tableName == ddpData.tableName).length > 0) {
+        this.tabRefData.filter((x: any, i: number) => { if (x.tableName == ddpData.tableName) { index = i; } })
+        this.tabRefData.push(ddpData)
+        this.tabRefData.splice(index, 1);
+      }
+      else {
+        if (this.tabRefData.length > 0) {
+          this.tabRefData.filter((x: any, i: number) => { if (x.tableName == this.historicalData.tableName) { index = i; } })
+          if (index) {
+            this.tabRefData.splice(index, 1);
+          }
+        }
+        this.tabRefData.push(ddpData)
+      }
 
       this.tableName = event.value
       if (this.innerJoinName != '') {
         this.innerJoinOutput = `DEF${this.j}
       INNER JOIN ${this.innerJoinName} REF${this.i} 
-      ON REF${this.i}.${this.columnL[0].tablePKName} = DEF${this.j}.${this.columnR[0].tablePKName} `
+      ON REF${this.i}.${this.columnL[0].tablePKName} = DEF${this.j}.${this.columnR[0].tablePKName}`
       }
     }
     else {
@@ -74,14 +104,25 @@ export class SpCreatorHomeComponent extends SPCreatorProperties implements OnIni
   }
 
   onDropdownChangeforInnerJoin(event: MatSelectChange) {
-    debugger;
+    this.selectInputChange()
     if (event.value != '') {
+      this.onTableDDReset()
       this.innerJoinName = event.value;
       this.columnL = this.ddData.filter((x: any) => x.tableName == event.value)
       var ddpData = { id: 'REF', tableName: this.columnL[0].tableName, data: this.columnL[0] }
-
-      if (this.tabRefData.filter((x: any) => x.tableName == ddpData.tableName).length > 0) { }
-      else { this.tabRefData.push(ddpData) }
+      var index
+      if (this.tabRefData.filter((x: any) => x.tableName == ddpData.tableName).length > 0) {
+        this.tabRefData.filter((x: any, i: number) => { if (x.tableName == ddpData.tableName) { index = i; } })
+        this.tabRefData.push(ddpData)
+        this.tabRefData.splice(index, 1);
+      }
+      else {
+        this.tabRefData.filter((x: any, i: number) => { if (x.tableName == this.historicalData.innerJoinName) { index = i; } })
+        this.tabRefData.push(ddpData)
+        if (index) {
+          this.tabRefData.splice(index, 1);
+        }
+      }
 
       this.innerJoinOutput = `DEF${this.j}
       INNER JOIN ${this.innerJoinName} REF${this.i} 
@@ -156,7 +197,7 @@ export class SpCreatorHomeComponent extends SPCreatorProperties implements OnIni
   }
   addWheretoGrid() {
     const newWhereUsersArray = this.userWhereData;
-    newWhereUsersArray.push({ condition: this.whereName, comparator: this.comparatorSelected, value: this.conditionValue })
+    newWhereUsersArray.push({ tableRef: this.tabRefName, condition: this.whereName, comparator: this.comparatorSelected, value: this.conditionValue })
     this.whereDataSource = [...newWhereUsersArray];
     if (this.whereList.length > 0) {
       this.whereList.push(`${this.addCondition} ${this.whereCondition}`)
@@ -186,6 +227,15 @@ export class SpCreatorHomeComponent extends SPCreatorProperties implements OnIni
     this.whereList.splice(i, 1);
     this.whereDataSource = [...newWhereUsersArray];
     this.whereConditionFormat();
+    this.outPutDataFormat();
+  }
+
+  onTableDDReset() {
+    this.whereList = [];
+    this.userWhereData = [];
+    this.whereDataSource = [];
+    this.tableColumns = [];
+    this.whereConditionFormat()
     this.outPutDataFormat();
   }
 

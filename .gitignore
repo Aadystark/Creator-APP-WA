@@ -40,3 +40,11 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+/.vs
+/obj/Debug
+/.vs/SPCreationAPP/v17
+/.gitignore
+/package-lock.json
+/SPCreationAPP.esproj
+/.gitignore
+/.gitignore
